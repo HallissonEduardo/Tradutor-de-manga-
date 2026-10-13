@@ -1,0 +1,138 @@
+.escondido { display: none !important; }
+
+.camada-selecao {
+  position: fixed;
+  inset: 0;
+  cursor: crosshair;
+  background-color: rgba(0, 0, 0, 0.4);
+  user-select: none;
+}
+
+.caixa-selecao {
+  position: absolute;
+  border: 2px solid #00ff88;
+  background-color: rgba(0, 255, 136, 0.2);
+  pointer-events: none;
+}
+
+.painel-aviso {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-family: sans-serif;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.janela-traducao {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+  border-radius: 8px;
+  padding: 6px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 16px;
+  line-height: 1.2;
+  text-align: center;
+  word-break: break-word;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* Rede de segurança: o estado "carregando" nunca deve aparecer sobre a imagem. */
+.janela-traducao.carregando { display: none !important; }
+.janela-traducao.erro { color: #b91c1c; font-size: 12px; border-color: #b91c1c; }
+
+.janela-traducao.transparente { opacity: 0.12; }
+
+.painel-modos {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  cursor: default;
+}
+.painel-modos button {
+  font-family: sans-serif;
+  font-size: 13px;
+  padding: 6px 12px;
+  border: 1px solid #555;
+  border-radius: 14px;
+  background: #333;
+  color: #fff;
+  cursor: pointer;
+}
+.painel-modos button.ativo { background: #00a35c; border-color: #00ff88; }
+
+.controle-monitor {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #222;
+  color: #fff;
+  border-radius: 16px;
+  font-family: sans-serif;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+}
+.controle-monitor .ponto {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #ff4d4d;
+  animation: pulsar 1.4s infinite;
+}
+.controle-monitor button {
+  font-size: 12px; padding: 3px 8px;
+  border: 1px solid #666; border-radius: 10px;
+  background: #3a3a3a; color: #fff; cursor: pointer;
+}
+.controle-monitor button:hover { background: #555; }
+.controle-monitor .rotulo { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.controle-monitor.traduzindo .ponto { background: #ffb020; }
+.controle-monitor.com-erro .ponto { animation: none; }
+.controle-monitor.com-erro .rotulo { color: #ff9a9a; }
+@keyframes pulsar { 50% { opacity: 0.25; } }
+
+/* Balões individuais (um por balão detectado) */
+.janela-traducao.item {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 0;
+  font-family: 'Comic Neue', 'Comic Sans MS', 'Segoe UI', sans-serif;
+}
+.item .texto {
+  box-sizing: border-box;
+  text-align: center;
+  line-height: 1.15;
+  font-weight: 600;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.item.tipo-pensamento .texto { font-style: italic; }
+.item.tipo-grito .texto { font-weight: 800; text-transform: uppercase; }
+.item.tipo-narracao .texto { font-weight: 500; }
+.item.tipo-sfx { background: transparent !important; overflow: visible; }
+.item.tipo-sfx .texto {
+  font-weight: 900;
+  font-style: italic;
+  color: #000;
+  text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff, 0 0 5px #fff;
+}
