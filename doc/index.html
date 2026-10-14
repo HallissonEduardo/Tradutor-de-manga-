@@ -3,37 +3,234 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MangaLens</title>
+  <title>MangaLens: traduza mangás no navegador</title>
+  <meta name="description" content="Extensão do Chrome que traduz balões de mangá automaticamente, com OCR e IA.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; max-width: 640px; margin: 48px auto; padding: 0 20px; line-height: 1.5; color: #222; }
-    .botao { display: inline-block; background: #2563eb; color: #fff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; }
-    .botao:hover { background: #1d4ed8; }
-    ol li, ul li { margin-bottom: 6px; }
+    :root {
+      --papel: #f1f2f6;
+      --tinta: #171923;
+      --suave: #565b6e;
+      --azul: #3a46d4;
+      --azul-escuro: #2d37b0;
+      --tom: #b9bff0;
+      --branco: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--papel);
+      color: var(--tinta);
+      font-family: 'Bricolage Grotesque', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      line-height: 1.55;
+    }
+    a { color: var(--azul); }
+    a:focus-visible, button:focus-visible { outline: 3px solid var(--azul); outline-offset: 3px; }
+
+    .pagina { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---------- Abertura ---------- */
+    .abertura {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 56px;
+      align-items: center;
+      min-height: 86vh;
+      padding: 56px 0;
+    }
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(3rem, 8vw, 5.6rem);
+      line-height: 0.95;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+    }
+    .lead { margin: 0 0 32px; max-width: 30em; font-size: 1.2rem; color: var(--suave); }
+    .acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+    .botao {
+      display: inline-block;
+      background: var(--azul);
+      color: var(--branco);
+      padding: 15px 30px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1.05rem;
+      text-decoration: none;
+      transition: background .15s, transform .15s;
+    }
+    .botao:hover { background: var(--azul-escuro); transform: translateY(-1px); }
+    .acoes small { color: var(--suave); }
+
+    /* ---------- Quadro de mangá ---------- */
+    .quadro {
+      position: relative;
+      aspect-ratio: 4 / 5;
+      max-width: 380px;
+      width: 100%;
+      justify-self: center;
+      border: 3px solid var(--tinta);
+      background: repeating-conic-gradient(from 0deg at 50% 46%, var(--branco) 0 3deg, var(--papel) 3deg 6deg);
+      box-shadow: 8px 8px 0 var(--tinta);
+      overflow: hidden;
+    }
+    .quadro::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(var(--tom) 1.4px, transparent 1.9px) 0 0 / 9px 9px;
+      -webkit-mask-image: linear-gradient(200deg, transparent 45%, #000 100%);
+      mask-image: linear-gradient(200deg, transparent 45%, #000 100%);
+      pointer-events: none;
+    }
+    .balao {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      transform: translate(-50%, -50%);
+      width: 72%;
+      aspect-ratio: 1.25;
+      display: grid;
+      place-items: center;
+      padding: 8%;
+      background: var(--branco);
+      color: var(--tinta);
+      border: 3px solid var(--tinta);
+      border-radius: 50%;
+      cursor: pointer;
+      font: 700 clamp(1.7rem, 5.4vw, 2.3rem) / 1.1 'Comic Neue', 'Comic Sans MS', sans-serif;
+      text-align: center;
+      z-index: 2;
+    }
+    .balao::after {
+      content: "";
+      position: absolute;
+      left: 22%;
+      bottom: -17px;
+      width: 26px;
+      height: 26px;
+      background: var(--branco);
+      border-right: 3px solid var(--tinta);
+      border-bottom: 3px solid var(--tinta);
+      transform: skewX(-24deg) rotate(35deg);
+    }
+    .balao .original { display: none; font-family: 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', 'Meiryo', sans-serif; font-weight: 800; }
+    .balao[aria-pressed="true"] .original { display: block; }
+    .balao[aria-pressed="true"] .traducao { display: none; }
+    .legenda {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      z-index: 3;
+      margin: 0;
+      padding: 10px 14px;
+      background: var(--tinta);
+      color: var(--branco);
+      font-size: .85rem;
+      text-align: center;
+    }
+
+    /* ---------- Instalação ---------- */
+    section { padding: 24px 0 64px; }
+    h2 { margin: 0 0 28px; font-size: 1.7rem; letter-spacing: -0.02em; font-weight: 800; }
+    .passos {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 28px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: passo;
+    }
+    .passos li { counter-increment: passo; padding-top: 14px; border-top: 3px solid var(--tinta); }
+    .passos li::before {
+      content: counter(passo);
+      display: block;
+      margin-bottom: 6px;
+      font-size: 2.2rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--azul);
+    }
+    code { background: var(--branco); padding: 2px 6px; border-radius: 5px; font-size: .92em; }
+
+    .chaves {
+      max-width: 640px;
+      padding: 22px 24px;
+      background: var(--branco);
+      border: 3px solid var(--tinta);
+      border-radius: 14px;
+    }
+    .chaves h2 { font-size: 1.25rem; margin-bottom: 10px; }
+    .chaves p { margin: 0 0 10px; }
+    .chaves p:last-child { margin: 0; }
+
+    footer { padding: 0 0 48px; color: var(--suave); font-size: .95rem; }
+
+    @media (max-width: 820px) {
+      .abertura { grid-template-columns: 1fr; min-height: 0; gap: 44px; padding-top: 40px; }
+      .passos { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .passos { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .botao { transition: none; }
+    }
   </style>
 </head>
 <body>
-  <h1>MangaLens</h1>
-  <p>Traduza mangás direto no navegador, com OCR e IA.</p>
+  <main class="pagina">
+    <header class="abertura">
+      <div>
+        <h1>MangaLens</h1>
+        <p class="lead">Traduza os balões de mangá direto na página, sem sair do seu leitor. Funciona com OCR e IA, e guarda o que já traduziu para economizar chamadas de API.</p>
+        <div class="acoes">
+          <a class="botao" href="https://github.com/HallissonEduardo/Tradutor-de-manga-/releases/latest/download/MangaLens.zip">Baixar extensão (.zip)</a>
+          <small>Para Chrome · gratuita · <a href="https://github.com/HallissonEduardo/Tradutor-de-manga-/releases">outras versões</a></small>
+        </div>
+      </div>
 
-  <p><a class="botao" href="https://github.com/HallissonEduardo/Tradutor-de-manga-/releases/latest/download/MangaLens.zip">Baixar extensão (.zip)</a></p>
+      <div class="quadro">
+        <button class="balao" type="button" aria-pressed="false" aria-label="Alternar entre a tradução e o texto original">
+          <span class="traducao">O quê?!</span>
+          <span class="original" lang="ja">何だと？！</span>
+        </button>
+        <p class="legenda">Clique no balão para ver o original</p>
+      </div>
+    </header>
 
-  <h2>Como instalar</h2>
-  <ol>
-    <li>Descompacte o ZIP em uma pasta.</li>
-    <li>Abra <code>chrome://extensions</code> e ative o <b>Modo do desenvolvedor</b>.</li>
-    <li>Clique em <b>Carregar sem compactação</b> e escolha a pasta descompactada.</li>
-    <li>Abra as Opções da extensão e cole sua chave de API (Gemini e/ou DeepL).</li>
-    <li>Em qualquer leitor de mangá, pressione <b>Alt+T</b> para começar.</li>
-  </ol>
+    <section id="instalar">
+      <h2>Instale em quatro passos</h2>
+      <ol class="passos">
+        <li>Descompacte o ZIP em uma pasta.</li>
+        <li>Abra <code>chrome://extensions</code> e ative o <b>Modo do desenvolvedor</b>.</li>
+        <li>Clique em <b>Carregar sem compactação</b> e escolha a pasta.</li>
+        <li>Abra uma página de mangá e pressione <b>Alt+T</b>.</li>
+      </ol>
+    </section>
 
-  <h2>Sobre as chaves de API</h2>
-  <ul>
-    <li>Recomendo inserir as chaves pelo menos no uso inicial: a qualidade das traduções fica superior e o cache é alimentado.</li>
-    <li>No meu uso, adicionei as chaves do Gemini e do DeepL e, depois de algumas horas, o cache e o MyMemory já supriam tudo.</li>
-    <li>Ambas têm um limite gratuito bem generoso:
-      <a href="https://aistudio.google.com/apikey">chave do Gemini</a> ·
-      <a href="https://www.deepl.com/pro-api">chave do DeepL (plano Free)</a>.
-    </li>
-  </ul>
+    <section>
+      <div class="chaves">
+        <h2>Antes de começar, adicione suas chaves de API</h2>
+        <p>Nas Opções da extensão, cole as chaves do Gemini e do DeepL. As traduções ficam melhores e alimentam o cache.</p>
+        <p>No meu uso, depois de algumas horas o cache e o MyMemory já davam conta de tudo. Ambas as APIs têm um limite gratuito generoso.</p>
+        <p><a href="https://aistudio.google.com/apikey">Criar chave do Gemini</a> &nbsp;|&nbsp; <a href="https://www.deepl.com/pro-api">Criar chave do DeepL (plano Free)</a></p>
+      </div>
+    </section>
+
+    <footer>
+      Código aberto no <a href="https://github.com/HallissonEduardo/Tradutor-de-manga-">GitHub</a>.
+    </footer>
+  </main>
+
+  <script>
+    const balao = document.querySelector('.balao');
+    balao.addEventListener('click', () => {
+      balao.setAttribute('aria-pressed', balao.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+    });
+  </script>
 </body>
 </html>
