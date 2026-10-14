@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MangaLens</title>
+  <style>
+    body { font-family: sans-serif; max-width: 640px; margin: 48px auto; padding: 0 20px; line-height: 1.5; color: #222; }
+    .botao { display: inline-block; background: #2563eb; color: #fff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; }
+    .botao:hover { background: #1d4ed8; }
+    ol li, ul li { margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <h1>MangaLens</h1>
+  <p>Traduza mangás direto no navegador, com OCR e IA.</p>
+
+  <p><a class="botao" href="https://github.com/HallissonEduardo/Tradutor-de-manga-/releases/latest/download/MangaLens.zip">Baixar extensão (.zip)</a></p>
+
+  <h2>Como instalar</h2>
+  <ol>
+    <li>Descompacte o ZIP em uma pasta.</li>
+    <li>Abra <code>chrome://extensions</code> e ative o <b>Modo do desenvolvedor</b>.</li>
+    <li>Clique em <b>Carregar sem compactação</b> e escolha a pasta descompactada.</li>
+    <li>Abra as Opções da extensão e cole sua chave de API (Gemini e/ou DeepL).</li>
+    <li>Em qualquer leitor de mangá, pressione <b>Alt+T</b> para começar.</li>
+  </ol>
+
+  <h2>Sobre as chaves de API</h2>
+  <ul>
+    <li>Recomendo inserir as chaves pelo menos no uso inicial: a qualidade das traduções fica superior e o cache é alimentado.</li>
+    <li>No meu uso, adicionei as chaves do Gemini e do DeepL e, depois de algumas horas, o cache e o MyMemory já supriam tudo.</li>
+    <li>Ambas têm um limite gratuito bem generoso:
+      <a href="https://aistudio.google.com/apikey">chave do Gemini</a> ·
+      <a href="https://www.deepl.com/pro-api">chave do DeepL (plano Free)</a>.
+    </li>
+  </ul>
+</body>
+</html>

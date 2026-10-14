@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Tradutor de Mangás",
   "version": "1.1.0",
-  "description": "Traduza balões de mangá diretamente no navegador com OCR e IA.",
+  "description": "Traduza balões de mangá diretamente no navegador com OCR e IA, para melhor qualidade cadastre as chaves api solicitadas na janela de opções.",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",
@@ -17,7 +17,7 @@
     "https://api.deepl.com/*"
   ],
   "action": {
-    "default_title": "Ativar Seleção de Tradução (Alt+T)",
+    "default_title": "Ativar Tradução (Alt+T)",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
