@@ -4,6 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MangaLens: traduza mangás no navegador</title>
+  
+  <link rel="icon" href="icon/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="icon/icon32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icon/icon16.png">
+  <link rel="apple-touch-icon" href="icon/apple-touch-icon.png">
+  
   <meta name="description" content="Extensão do Chrome que traduz balões de mangá automaticamente, com OCR e IA.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,6 +47,7 @@
       min-height: 86vh;
       padding: 56px 0;
     }
+    .logo { display: block; width: 84px; height: 84px; margin-bottom: 20px; border-radius: 20px; }
     h1 {
       margin: 0 0 18px;
       font-size: clamp(3rem, 8vw, 5.6rem);
@@ -185,6 +192,7 @@
   <main class="pagina">
     <header class="abertura">
       <div>
+        <img class="logo" src="icon/icon128.png" width="84" height="84" alt="Ícone do MangaLens">
         <h1>MangaLens</h1>
         <p class="lead">Traduza mangás direto na página, sem sair do seu leitor. Funciona com OCR e IA, e guarda o que já traduziu para economizar chamadas de API.</p>
         <div class="acoes">
