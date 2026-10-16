@@ -42,11 +42,10 @@
     
     /* ---------- Abertura ---------- */
     .abertura {
-      display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 56px;
+      max-width: 640px;
+      min-height: 70vh;
+      display: flex;
       align-items: center;
-      min-height: 86vh;
       padding: 56px 0;
     }
     .logo { display: block; width: 84px; height: 84px; margin-bottom: 20px; border-radius: 20px; }
@@ -72,75 +71,6 @@
     }
     .botao:hover { background: var(--azul-escuro); transform: translateY(-1px); }
     .acoes small { color: var(--suave); }
-
-
-
-    /* ---------- Quadro de mangá ---------- */
-    .quadro {
-      position: relative;
-      aspect-ratio: 4 / 5;
-      max-width: 380px;
-      width: 100%;
-      justify-self: center;
-      border: 3px solid var(--tinta);
-      background: repeating-conic-gradient(from 0deg at 50% 46%, var(--branco) 0 3deg, var(--papel) 3deg 6deg);
-      box-shadow: 8px 8px 0 var(--tinta);
-      overflow: hidden;
-    }
-    .quadro::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(var(--tom) 1.4px, transparent 1.9px) 0 0 / 9px 9px;
-      -webkit-mask-image: linear-gradient(200deg, transparent 45%, #000 100%);
-      mask-image: linear-gradient(200deg, transparent 45%, #000 100%);
-      pointer-events: none;
-    }
-    .balao {
-      position: absolute;
-      left: 50%;
-      top: 46%;
-      transform: translate(-50%, -50%);
-      width: 72%;
-      aspect-ratio: 1.25;
-      display: grid;
-      place-items: center;
-      padding: 8%;
-      background: var(--branco);
-      color: var(--tinta);
-      border: 3px solid var(--tinta);
-      border-radius: 50%;
-      cursor: pointer;
-      font: 700 clamp(1.7rem, 5.4vw, 2.3rem) / 1.1 'Comic Neue', 'Comic Sans MS', sans-serif;
-      text-align: center;
-      z-index: 2;
-    }
-    .balao::after {
-      content: "";
-      position: absolute;
-      left: 22%;
-      bottom: -17px;
-      width: 26px;
-      height: 26px;
-      background: var(--branco);
-      border-right: 3px solid var(--tinta);
-      border-bottom: 3px solid var(--tinta);
-      transform: skewX(-24deg) rotate(35deg);
-    }
-    .balao .original { display: none; font-family: 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', 'Meiryo', sans-serif; font-weight: 800; }
-    .balao[aria-pressed="true"] .original { display: block; }
-    .balao[aria-pressed="true"] .traducao { display: none; }
-    .legenda {
-      position: absolute;
-      left: 0; right: 0; bottom: 0;
-      z-index: 3;
-      margin: 0;
-      padding: 10px 14px;
-      background: var(--tinta);
-      color: var(--branco);
-      font-size: .85rem;
-      text-align: center;
-    }
 
 
 
@@ -182,7 +112,7 @@
     footer { padding: 0 0 48px; color: var(--suave); font-size: .95rem; }
 
     @media (max-width: 820px) {
-      .abertura { grid-template-columns: 1fr; min-height: 0; gap: 44px; padding-top: 40px; }
+      .abertura { min-height: 0; padding-top: 40px; }
       .passos { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 480px) {
@@ -207,13 +137,6 @@
         </div>
       </div>
 
-      <div class="quadro">
-        <button class="balao" type="button" aria-pressed="false" aria-label="Alternar entre a tradução e o texto original">
-          <span class="traducao">O quê?!</span>
-          <span class="original" lang="ja">何だと？！</span>
-        </button>
-        <p class="legenda">Clique no balão para ver o original</p>
-      </div>
     </header>
 
     <section id="instalar">
@@ -240,11 +163,5 @@
     </footer>
   </main>
 
-  <script>
-    const balao = document.querySelector('.balao');
-    balao.addEventListener('click', () => {
-      balao.setAttribute('aria-pressed', balao.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
-    });
-  </script>
 </body>
 </html>
