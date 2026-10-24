@@ -1,3 +1,5 @@
+**Previsão de atualização:** 21 de Novembro de 2026
+
 # MangaLens
 
 Extensão do Chrome que traduz balões de mangá, manhua e webtoon direto na página, sem sair do leitor.
