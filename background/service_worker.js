@@ -1,6 +1,6 @@
 importScripts(
-  "../lib/db_cache.js", "../lib/recorte_imagem.js", "../lib/tradutor.js", "../lib/dicionario.js",
-  "../lib/frases.js", "../lib/metricas.js"
+  "../lib/idiomas.js", "../lib/db_cache.js", "../lib/recorte_imagem.js", "../lib/tradutor.js", "../lib/dicionario.js",
+  "../lib/frases.js", "../lib/metricas.js", "message_router.js"
 );
 
 const cache = new CacheIndexedDB();
@@ -24,8 +24,6 @@ const CONFIANCA_BLOCO = 55;   // blocos do Tesseract com média de palavras abai
 const MARGEM_PX = 4;          // folga ao redor do texto (em pixels da captura original)
 const LIMITE_MONITOR_POR_MIN = 30; // trava anti-loop do modo automático (traduções novas por minuto)
 const temposMonitor = [];
-const IDIOMAS_OCR = { en: "eng", ja: "jpn", es: "spa", ko: "kor", zh: "chi_sim" };
-
 // ---------- Migração: chaves antigas estavam em storage.sync (sincroniza com a conta Google) ----------
 chrome.runtime.onInstalled.addListener(async () => {
   try {
@@ -76,7 +74,7 @@ async function executarOcr(captura, cfg, { inverter = false, binario = false } =
   await garantirOffscreen();
   const prep = await RecortadorImagem.prepararParaOcr(captura.blob, 2, inverter, binario);
   const vertical = cfg.origem === "ja" && cfg.japonesVertical;
-  const lang = vertical ? "jpn_vert" : IDIOMAS_OCR[cfg.origem] || "eng";
+  const lang = codigoOcr(cfg.origem, vertical) || "eng";
   // Vertical: bloco único; demais: análise automática de layout (PSM 3), que separa os balões
   // em blocos coerentes. O PSM 11 (texto esparso) fragmentava cada balão em pedaços soltos.
   const psm = vertical ? "5" : "3";
@@ -415,29 +413,31 @@ async function testarChave(msg) {
   return { texto: resposta };
 }
 
-chrome.runtime.onMessage.addListener((msg, sender, enviarResposta) => {
-  const rotas = {
-    cache_exportar: async () => ({ itens: await cache.exportarTextos() }),
-    cache_importar: async () => { const novos = await cache.importarTextos(msg.itens); indice.invalidar(); return { novos }; },
-    cache_limpar: async () => { await cache.limpar(); indice.invalidar(); return {}; },
-    metricas_info: async () => ({ dados: await metricas.resumo() }),
-    metricas_zerar: async () => { await metricas.zerar(); return {}; },
-    dicionario_info: () => dicionario.info(),
-    dicionario_limpar: async () => { await dicionario.limparAprendidas(); return {}; },
-    capturar_area: () => capturarArea(msg, sender),
-    processar_captura: () => processarCaptura(msg),
-    testar_chave: () => testarChave(msg),
-    testar_deepl: () => testarDeepl(msg),
-    monitor_verificar: () => monitorVerificar(msg, sender),
-    monitor_parar: async () => { if (sender.tab) monitores.delete(sender.tab.id); return {}; }
-  };
-  const rota = rotas[msg?.acao];
-  if (!rota) return false;
-
-  rota()
-    .then((r) => enviarResposta({ sucesso: true, ...r }))
-    .catch((e) => enviarResposta({ sucesso: false, erro: e?.message || String(e) }));
-  return true;
+registrarHandlersMensagens({
+  cache_exportar: async () => ({ itens: await cache.exportarTextos() }),
+  cache_importar: async (msg) => {
+    const novos = await cache.importarTextos(msg.itens);
+    indice.invalidar();
+    return { novos };
+  },
+  cache_limpar: async () => {
+    await cache.limpar();
+    indice.invalidar();
+    return {};
+  },
+  metricas_info: async () => ({ dados: await metricas.resumo() }),
+  metricas_zerar: async () => { await metricas.zerar(); return {}; },
+  dicionario_info: () => dicionario.info(),
+  dicionario_limpar: async () => { await dicionario.limparAprendidas(); return {}; },
+  capturar_area: (msg, sender) => capturarArea(msg, sender),
+  processar_captura: (msg) => processarCaptura(msg),
+  testar_chave: (msg) => testarChave(msg),
+  testar_deepl: (msg) => testarDeepl(msg),
+  monitor_verificar: (msg, sender) => monitorVerificar(msg, sender),
+  monitor_parar: async (msg, sender) => {
+    if (sender.tab) monitores.delete(sender.tab.id);
+    return {};
+  }
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => monitores.delete(tabId));
