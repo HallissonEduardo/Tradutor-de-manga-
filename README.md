@@ -1,4 +1,4 @@
-**Previsão de atualização:** 21 de Novembro de 2026
+**Previsão de atualização:** 05 de Dezembro de 2026
 
 # MangaLens
 
