@@ -1,95 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <title>Opções - Tradutor de Mangás</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Opções - MangaLens</title>
   <style>
-    body { font-family: sans-serif; max-width: 420px; margin: 40px auto; padding: 20px; background: #f9f9f9; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; }
-    label.inline { display: flex; align-items: center; gap: 8px; font-weight: normal; }
-    input, select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-    input[type=checkbox] { width: auto; margin: 0; }
-    button { margin-top: 20px; background: #2563eb; color: white; border: none; padding: 10px; width: 100%; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    :root { color-scheme: light; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #172033; background: #f3f5f9; }
+    * { box-sizing: border-box; }
+    body { max-width: 760px; margin: 0 auto; padding: 32px 20px 56px; line-height: 1.5; }
+    h1 { margin: 0; font-size: 1.7rem; }
+    .introducao { margin: 6px 0 22px; color: #4b5563; }
+    .grupo { margin: 0 0 16px; padding: 20px; border: 1px solid #d8deea; border-radius: 12px; background: #fff; }
+    .grupo h2 { margin: 0 0 12px; font-size: 1.1rem; }
+    .grupo > p:first-of-type { margin-top: 0; }
+    label { display: block; margin-top: 14px; font-weight: 650; font-size: 14px; }
+    label.inline { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+    input, select { width: 100%; min-height: 40px; padding: 8px 10px; margin-top: 5px; border: 1px solid #aeb8c9; border-radius: 6px; background: #fff; color: inherit; font: inherit; }
+    input[type=checkbox] { width: 18px; min-height: 18px; margin: 0; }
+    input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+    button { min-height: 40px; padding: 9px 12px; border: 0; border-radius: 6px; background: #2563eb; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
     button:hover { background: #1d4ed8; }
-    button.sec { background: #6b7280; margin-top: 8px; }
-    button.sec:hover { background: #4b5563; }
-    .hint { font-size: 12px; color: #666; margin-top: 4px; font-weight: normal; }
-    .status { margin-top: 15px; font-size: 13px; text-align: center; min-height: 18px; }
-    .ok { color: #16a34a; } .erro { color: #b91c1c; }
+    button.sec { margin-top: 8px; background: #e8edf5; color: #172033; }
+    button.sec:hover { background: #d8e0ec; }
+    .grupo button { width: 100%; }
+    .hint { margin-top: 5px; color: #566174; font-size: 13px; }
+    .status { min-height: 24px; margin: 10px 0 0; font-size: 14px; }
+    .ok { color: #166534; } .erro { color: #b91c1c; }
+    .acoes { margin: 16px 0 24px; }
+    .acoes button { width: 100%; }
+    @media (max-width: 520px) { body { padding: 20px 14px 40px; } .grupo { padding: 16px; } }
   </style>
 </head>
 <body>
-  <h2>Configurações do Tradutor</h2>
+  <main>
+    <h1>Configurações</h1>
+    <p class="introducao">Ajuste a tradução e a leitura. Chaves de API são opcionais; sem elas, o MangaLens ainda usa o dicionário, o cache e o MyMemory.</p>
 
-  <label for="apiKey">Chave de API do Gemini (Google AI Studio):</label>
-  <input type="password" id="apiKey" placeholder="Cole sua chave aqui" autocomplete="off">
-  <div class="hint">Salva apenas neste navegador (não sincroniza com a conta Google).</div>
+    <section class="grupo" aria-labelledby="titulo-traducao">
+      <h2 id="titulo-traducao">Tradução e idiomas</h2>
+      <label for="modo">Como traduzir</label>
+      <select id="modo">
+        <option value="hibrido">Híbrido: DeepL, Gemini e MyMemory</option>
+        <option value="gemini">Gemini e MyMemory</option>
+        <option value="mymemory">Somente MyMemory</option>
+      </select>
+      <div class="hint">Dicionário e cache são consultados primeiro. Depois, o modo escolhido define quais serviços podem receber o texto; sem chave, os provedores que exigem chave são ignorados.</div>
 
-  <label for="modelo">Modelo do Gemini:</label>
-  <input type="text" id="modelo" list="modelos" value="gemini-2.5-flash">
-  <datalist id="modelos">
-    <option value="gemini-2.5-flash"></option>
-    <option value="gemini-2.5-flash-lite"></option>
-    <option value="gemini-2.5-pro"></option>
-  </datalist>
+      <label for="origem">Idioma do texto original</label>
+      <select id="origem"></select>
+      <label class="inline"><input type="checkbox" id="vertical" checked> Texto japonês vertical (OCR local)</label>
 
-  <label for="deeplKey">Chave de API do DeepL (1ª opção de tradução):</label>
-  <input type="password" id="deeplKey" placeholder="Cole sua chave aqui" autocomplete="off">
-  <div class="hint" id="deeplPlano">Chaves do plano Free terminam em :fx. Salva apenas neste navegador.</div>
-  <button id="testarDeepl" class="sec">Testar chave DeepL</button>
-  <button id="removerDeepl" class="sec">Remover chave DeepL</button>
-  <div class="hint" id="statusProvedores"></div>
-  <button id="reativarDeepl" class="sec" hidden>Reativar DeepL agora</button>
+      <label for="destino">Traduzir para</label>
+      <select id="destino"></select>
 
-  <label for="modo">Modo de tradução:</label>
-  <select id="modo">
-    <option value="hibrido">Híbrido: Cache → DeepL → Gemini → MyMemory</option>
-    <option value="gemini">Cache → Gemini → MyMemory</option>
-    <option value="mymemory">Cache → MyMemory</option>
-  </select>
-  <div class="hint">O OCR local (Tesseract) lê os balões. No modo híbrido, o DeepL traduz e o Gemini é o reserva; no segundo, só o Gemini (e o MyMemory como último recurso); no terceiro, apenas o cache e o MyMemory, sem chamar DeepL nem Gemini (inclusive para ler a imagem). O cache é sempre consultado primeiro.</div>
+      <label for="email">E-mail para o MyMemory (opcional)</label>
+      <input type="email" id="email" placeholder="seu.email@exemplo.com">
+    </section>
 
-  <label for="intervalo">Modo automático (janela inteira): verificar a cada (segundos):</label>
-  <input type="number" id="intervalo" min="1" max="30" step="1" value="3">
-  <div class="hint">Verificações extras ocorrem ao rolar, clicar ou usar o teclado. Limite do Chrome: 2 capturas por segundo.</div>
+    <section class="grupo" aria-labelledby="titulo-provedores">
+      <h2 id="titulo-provedores">Provedores de tradução (opcional)</h2>
+      <label for="apiKey">Chave de API do Gemini (Google AI Studio)</label>
+      <input type="password" id="apiKey" placeholder="Cole sua chave aqui" autocomplete="off" aria-describedby="privacidadeGemini">
+      <div class="hint" id="privacidadeGemini">Salva apenas neste navegador; não sincroniza com sua conta Google.</div>
 
-  <label for="origem">Idioma de Origem:</label>
-  <select id="origem">
-    <option value="en">Inglês (en)</option>
-    <option value="ja">Japonês (ja)</option>
-    <option value="ko">Coreano (ko)</option>
-    <option value="zh">Chinês (zh)</option>
-    <option value="es">Espanhol (es)</option>
-  </select>
+      <label for="modelo">Modelo do Gemini</label>
+      <input type="text" id="modelo" list="modelos" value="gemini-2.5-flash">
+      <datalist id="modelos">
+        <option value="gemini-2.5-flash"></option>
+        <option value="gemini-2.5-flash-lite"></option>
+        <option value="gemini-2.5-pro"></option>
+      </datalist>
+      <button id="testar" class="sec" type="button">Testar chave Gemini</button>
 
-  <label class="inline"><input type="checkbox" id="vertical" checked> Texto japonês vertical (OCR local)</label>
+      <label for="deeplKey">Chave de API do DeepL</label>
+      <input type="password" id="deeplKey" placeholder="Cole sua chave aqui" autocomplete="off" aria-describedby="deeplPlano">
+      <div class="hint" id="deeplPlano">Chaves do plano Free terminam em :fx. Salva apenas neste navegador.</div>
+      <button id="testarDeepl" class="sec" type="button">Testar chave DeepL</button>
+      <button id="removerDeepl" class="sec" type="button">Remover chave DeepL</button>
+      <div class="hint" id="statusProvedores" role="status" aria-live="polite"></div>
+      <button id="reativarDeepl" class="sec" type="button" hidden>Reativar DeepL agora</button>
+    </section>
 
-  <label for="destino">Idioma de Destino:</label>
-  <select id="destino">
-    <option value="pt-BR" selected>Português do Brasil (pt-BR)</option>
-    <option value="en">Inglês (en)</option>
-    <option value="es">Espanhol (es)</option>
-  </select>
+    <section class="grupo" aria-labelledby="titulo-monitor">
+      <h2 id="titulo-monitor">Monitoramento automático</h2>
+      <label for="intervalo">Verificar a página a cada (segundos)</label>
+      <input type="number" id="intervalo" min="1" max="30" step="1" value="15">
+      <div class="hint">Intervalo permitido: 1 a 30 segundos. Rolagem, clique e teclado também podem iniciar uma verificação; o Chrome limita capturas a 2 por segundo.</div>
+    </section>
 
-  <label for="email">E-mail para o MyMemory (Opcional):</label>
-  <input type="email" id="email" placeholder="seu.email@exemplo.com">
+    <div class="acoes">
+      <button id="salvar" type="button">Salvar configurações</button>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+    </div>
 
-  <button id="salvar">Salvar Configurações</button>
-  <button id="testar" class="sec">Testar chave</button>
-  <div id="status" class="status"></div>
+    <section class="grupo" aria-labelledby="titulo-dados">
+      <h2 id="titulo-dados">Cache e dicionário</h2>
+      <p class="hint">O cache de traduções é compartilhado entre sites e compatível com a versão desktop.</p>
+      <button id="cacheExportar" class="sec" type="button">Exportar cache (JSON)</button>
+      <button id="cacheImportar" class="sec" type="button">Importar cache (JSON)</button>
+      <button id="cacheLimpar" class="sec" type="button">Limpar cache</button>
+      <input type="file" id="arquivoCache" accept=".json,application/json" hidden>
 
-  <label>Cache de traduções (único para todos os sites):</label>
-  <button id="cacheExportar" class="sec">Exportar cache (JSON)</button>
-  <button id="cacheImportar" class="sec">Importar cache (JSON)</button>
-  <button id="cacheLimpar" class="sec">Limpar cache</button>
-  <input type="file" id="arquivoCache" accept=".json,application/json" hidden>
-  <label>Dicionário de falas frequentes:</label>
-  <div class="hint" id="infoDicionario">Carregando…</div>
-  <button id="dicionarioLimpar" class="sec">Limpar falas aprendidas</button>
-  <div class="hint">A lista embutida (inglês → português) é fixa e resolve interjeições e falas curtas sem usar API. As falas curtas traduzidas pelo DeepL ou pelo Gemini são aprendidas e reaproveitadas.</div>
-
-  <div class="hint">O formato é o mesmo do cache da versão desktop (origem&gt;destino, texto), então os dois podem trocar traduções.</div>
-
+      <h2 style="margin-top: 22px">Falas frequentes</h2>
+      <div class="hint" id="infoDicionario" role="status" aria-live="polite">Carregando…</div>
+      <button id="dicionarioLimpar" class="sec" type="button">Limpar falas aprendidas</button>
+      <div class="hint">Inclui uma lista embutida de inglês e japonês para português do Brasil. Falas curtas traduzidas pelo DeepL ou Gemini também podem ser aprendidas; limpar remove apenas as aprendidas, não as embutidas.</div>
+    </section>
+  </main>
+  <script src="../lib/idiomas.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

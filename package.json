@@ -1,0 +1,7 @@
+{
+  "name": "mangalens-extension",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  }
+}

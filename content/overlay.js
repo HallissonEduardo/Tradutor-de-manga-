@@ -5,7 +5,7 @@
     return;
   }
 
-  const INTERVALO_PADRAO_MS = 3000; // verificação periódica do modo automático
+  const INTERVALO_PADRAO_MS = 15000; // verificação periódica do modo automático
   const ESPERA_GATILHO_MS = 400;    // após rolar/clicar/teclar, espera a página assentar
   const ESPERA_INSTAVEL_MS = 500;   // reconferência rápida enquanto a imagem ainda muda
   const ESPACO_MIN_MS = 650;        // o Chrome limita captureVisibleTab a 2 chamadas/s
@@ -19,6 +19,143 @@
     monitor: "Monitorando a janela inteira. ESC para sair."
   };
 
+  class RenderizadorOverlay {
+    constructor(sombraTraducoes, aoRetentarMonitor) {
+      this.sombraTraducoes = sombraTraducoes;
+      this.janelas = new Set();
+      this.aoRetentarMonitor = aoRetentarMonitor;
+    }
+
+    criarJanela(coords, texto, classe, monitor = null) {
+      const janela = document.createElement("div");
+      janela.className = `janela-traducao ${classe || ""}`.trim();
+      if (monitor) {
+        janela.style.position = "fixed";
+        janela.style.left = `${coords.x}px`;
+        janela.style.top = `${coords.y}px`;
+      } else {
+        janela.style.left = `${coords.x + window.scrollX}px`;
+        janela.style.top = `${coords.y + window.scrollY}px`;
+      }
+      janela.style.width = `${Math.max(coords.largura, 120)}px`;
+      janela.style.minHeight = `${coords.altura}px`;
+      janela.textContent = texto;
+
+      janela.addEventListener("click", () => {
+        if (!monitor) { this.remover(janela); return; }
+        if (janela.classList.contains("erro")) {
+          this.aoRetentarMonitor(monitor);
+        } else {
+          const alvo = !janela.classList.contains("transparente");
+          monitor.elementos.forEach((e) => e.classList.toggle("transparente", alvo));
+        }
+      });
+
+      this.sombraTraducoes.appendChild(janela);
+      this.janelas.add(janela);
+      return janela;
+    }
+
+    renderizarItens(coords, itens, monitor) {
+      const elementos = [];
+      for (const it of itens) {
+        const sfx = it.tipo === "sfx";
+        const folga = sfx ? 0 : MARGEM_PX;
+
+        const L0 = coords.largura * it.caixa.w + 2 * folga;
+        const A0 = coords.altura * it.caixa.h + 2 * folga;
+        const X0 = coords.x + coords.largura * it.caixa.x - folga;
+        const Y0 = coords.y + coords.altura * it.caixa.y - folga;
+        const dx = monitor ? 0 : window.scrollX, dy = monitor ? 0 : window.scrollY;
+
+        const el = document.createElement("div");
+        el.className = `janela-traducao item tipo-${it.tipo}`;
+        el.style.position = monitor ? "fixed" : "absolute";
+        el.style.background = it.fundo || "#fff";
+        el.style.color = it.cor || "#111";
+        el.style.borderRadius = "8px";
+
+        const texto = document.createElement("div");
+        texto.className = "texto";
+        texto.textContent = it.texto;
+        el.appendChild(texto);
+
+        el.addEventListener("click", () => {
+          if (!monitor) { this.remover(el); return; }
+          const alvo = !el.classList.contains("transparente");
+          monitor.elementos.forEach((e) => e.classList.toggle("transparente", alvo));
+        });
+
+        this.sombraTraducoes.appendChild(el);
+        this.janelas.add(el);
+
+        const fator = sfx ? 1 : 0.92;
+        let esc = 1, tamanho;
+        for (;;) {
+          const L = Math.max(8, L0 * esc), A = Math.max(8, A0 * esc);
+          el.style.left = `${X0 - (L - L0) / 2 + dx}px`;
+          el.style.top = `${Y0 - (A - A0) / 2 + dy}px`;
+          el.style.width = `${L}px`;
+          el.style.height = `${A}px`;
+          tamanho = this.ajustarFonte(texto, L * fator, A * fator);
+          if (tamanho >= FONTE_CONFORTAVEL || esc >= 1.6) break;
+          esc *= 1.15;
+        }
+        elementos.push(el);
+      }
+      return elementos;
+    }
+
+    ajustarFonte(texto, largura, altura) {
+      texto.style.width = `${largura}px`;
+      texto.style.overflowWrap = "normal";
+      const cabe = () => texto.offsetHeight <= altura + 1 && texto.scrollWidth <= largura + 1;
+      const buscar = () => {
+        let lo = 7, hi = Math.max(7, Math.min(FONTE_MAX, Math.floor(altura)));
+        let melhor = 0;
+        while (lo <= hi) {
+          const meio = (lo + hi) >> 1;
+          texto.style.fontSize = `${meio}px`;
+          if (cabe()) { melhor = meio; lo = meio + 1; } else hi = meio - 1;
+        }
+        return melhor;
+      };
+      let tamanho = buscar();
+      if (!tamanho) {
+        texto.style.overflowWrap = "anywhere";
+        tamanho = buscar() || 7;
+      }
+      texto.style.fontSize = `${tamanho}px`;
+      return tamanho;
+    }
+
+    atualizarJanela(janela, coords, texto, classe = "") {
+      janela.className = `janela-traducao ${classe}`.trim();
+      janela.textContent = texto;
+      if (classe) return;
+      let tamanho = 18;
+      janela.style.fontSize = `${tamanho}px`;
+      while (tamanho > 9 && janela.offsetHeight > coords.altura + 2) {
+        tamanho -= 1;
+        janela.style.fontSize = `${tamanho}px`;
+      }
+    }
+
+    limpar(elementos) {
+      elementos.forEach((elemento) => this.remover(elemento));
+    }
+
+    remover(janela) {
+      janela.remove();
+      this.janelas.delete(janela);
+    }
+
+    fecharTodas() {
+      this.janelas.forEach((janela) => janela.remove());
+      this.janelas.clear();
+    }
+  }
+
   class TradutorOverlay {
     constructor() {
       this.ativo = false;
@@ -26,7 +163,6 @@
       this.inicioX = 0;
       this.inicioY = 0;
       this.retangulo = null;
-      this.janelas = new Set();
       this.modo = "unico";
       this.monitor = null;
 
@@ -44,6 +180,14 @@
       );
       this.hostTraducoes = trad.host;
       this.sombraTraducoes = trad.shadow;
+      this.renderizador = new RenderizadorOverlay(
+        this.sombraTraducoes,
+        (monitor) => {
+          this.limparElementos(monitor);
+          monitor.forcar = true;
+          this.agendar(monitor, 0);
+        }
+      );
 
       this.camada = document.createElement("div");
       this.camada.className = "camada-selecao";
@@ -221,12 +365,12 @@
         //    feedback é o cursor de "progresso".
         document.documentElement.style.cursor = "progress";
         const resultado = await this.enviar({ acao: "processar_captura", capturaId: captura.capturaId });
-        this.renderizarItens(coords, resultado.itens, null);
+        this.renderizador.renderizarItens(coords, resultado.itens, null);
       } catch (erro) {
         this.hostTraducoes.style.visibility = "visible";
         if (this.ativo) this.hostSelecao.style.display = "block";
-        const janela = this.criarJanela(coords, "", "erro");
-        this.atualizarJanela(janela, coords, this.mensagemErro(erro), "erro");
+        const janela = this.renderizador.criarJanela(coords, "", "erro");
+        this.renderizador.atualizarJanela(janela, coords, this.mensagemErro(erro), "erro");
         console.error("Erro no fluxo de tradução:", erro);
       } finally {
         document.documentElement.style.cursor = cursorAnterior;
@@ -382,7 +526,7 @@
     mostrarBalao(m) { m.elementos.forEach((e) => { e.style.visibility = ""; }); }
 
     limparElementos(m) {
-      m.elementos.forEach((e) => { e.remove(); this.janelas.delete(e); });
+      this.renderizador.limpar(m.elementos);
       m.elementos = [];
     }
 
@@ -448,7 +592,7 @@
         const res = await this.enviar({ acao: "processar_captura", capturaId });
         if (this.monitor !== m || m.seq !== seq) return; // já trocou de página
         this.limparElementos(m);
-        m.elementos = this.renderizarItens(m.coords, res.itens, m);
+        m.elementos = this.renderizador.renderizarItens(m.coords, res.itens, m);
         this.estadoBadge(m, "ok");
       } catch (erro) {
         if (this.monitor !== m || m.seq !== seq) return;
@@ -487,39 +631,6 @@
       return new Promise((r) =>
         requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 50)))
       );
-    }
-
-    /** `monitor` (opcional): balão do modo automático, fixo na viewport e com cliques próprios. */
-    criarJanela(coords, texto, classe, monitor = null) {
-      const janela = document.createElement("div");
-      janela.className = `janela-traducao ${classe || ""}`.trim();
-      if (monitor) {
-        janela.style.position = "fixed";
-        janela.style.left = `${coords.x}px`;
-        janela.style.top = `${coords.y}px`;
-      } else {
-        janela.style.left = `${coords.x + window.scrollX}px`;
-        janela.style.top = `${coords.y + window.scrollY}px`;
-      }
-      janela.style.width = `${Math.max(coords.largura, 120)}px`;
-      janela.style.minHeight = `${coords.altura}px`;
-      janela.textContent = texto;
-
-      janela.addEventListener("click", () => {
-        if (!monitor) { janela.remove(); this.janelas.delete(janela); return; }
-        if (janela.classList.contains("erro")) {   // erro: clique tenta de novo
-          this.limparElementos(monitor);
-          monitor.forcar = true;
-          this.agendar(monitor, 0);
-        } else {                                    // clique alterna para ver o original
-          const alvo = !janela.classList.contains("transparente");
-          monitor.elementos.forEach((e) => e.classList.toggle("transparente", alvo));
-        }
-      });
-
-      this.sombraTraducoes.appendChild(janela);
-      this.janelas.add(janela);
-      return janela;
     }
 
     /**
@@ -620,8 +731,7 @@
     }
 
     fecharJanelas() {
-      this.janelas.forEach((j) => j.remove());
-      this.janelas.clear();
+      this.renderizador.fecharTodas();
     }
   }
 

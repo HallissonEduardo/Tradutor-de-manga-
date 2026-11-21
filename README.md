@@ -1,4 +1,4 @@
-**Previsão de atualização:** 21 de Novembro de 2026
+**Previsão de atualização:** 05 de Dezembro de 2026
 
 # MangaLens
 
@@ -85,19 +85,15 @@ Nas **Opções** você configura:
 
 - Idioma de origem e de destino, e texto japonês vertical.
 - Modo de tradução: *Híbrido* (cache → DeepL → Gemini → MyMemory), *Gemini* (cache → Gemini → MyMemory) ou *MyMemory* (cache → MyMemory).
-- Intervalo do modo automático, de 1 a 30 segundos.
+- Intervalo do modo automático: padrão de 15 segundos, configurável de 1 a 30 segundos.
 - Exportar, importar e limpar o cache (formato compatível com a versão desktop) e limpar as falas aprendidas.
+- Uma lista embutida de falas frequentes em inglês e japonês para português do Brasil, além das falas curtas aprendidas com traduções do DeepL e do Gemini.
 
 ### Privacidade
 
 - O OCR é feito localmente. A imagem só é enviada ao **Gemini** quando o OCR sai fraco e há chave cadastrada.
 - Os textos lidos são enviados ao DeepL, Gemini ou MyMemory, conforme o modo escolhido.
 - O cache fica no seu navegador e é único para todos os sites.
-
-### Próximas versões
-
-- Atalho **Alt+S** para seleção manual.
-- Dicionário embutido de japonês, como o de inglês.
 
 ## Licença
 

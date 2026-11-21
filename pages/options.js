@@ -8,6 +8,20 @@ function mostrar(msg, ok = true, ms = 4000) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const preencherIdiomas = (select, codigos) => {
+    const fragmento = document.createDocumentFragment();
+    codigos.forEach((codigo) => {
+      const idioma = CATALOGO_IDIOMAS[codigo];
+      const opcao = document.createElement("option");
+      opcao.value = codigo;
+      opcao.textContent = idioma.nome;
+      fragmento.appendChild(opcao);
+    });
+    select.replaceChildren(fragmento);
+  };
+  preencherIdiomas($("origem"), IDIOMAS_ORIGEM);
+  preencherIdiomas($("destino"), IDIOMAS_DESTINO);
+
   const res = await chrome.storage.local.get([
     "geminiApiKey", "geminiModelo", "idiomaOrigem", "idiomaDestino",
     "myMemoryEmail", "modoTraducao", "japonesVertical", "intervaloMonitor", "deeplApiKey"
@@ -58,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const MODOS = ["hibrido", "gemini", "mymemory"];
   $("modo").value = MODOS.includes(res.modoTraducao) ? res.modoTraducao : "hibrido";
   $("vertical").checked = res.japonesVertical !== false;
-  $("intervalo").value = res.intervaloMonitor || 3;
+  $("intervalo").value = res.intervaloMonitor || 15;
 
   $("salvar").addEventListener("click", async () => {
     const modelo = $("modelo").value.trim();
@@ -76,7 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       myMemoryEmail: $("email").value.trim(),
       modoTraducao: $("modo").value,
       japonesVertical: $("vertical").checked,
-      intervaloMonitor: Math.min(30, Math.max(1, Number($("intervalo").value) || 3))
+      intervaloMonitor: Math.min(30, Math.max(1, Number($("intervalo").value) || 15))
     });
     await atualizarStatusProvedores();
     mostrar("Configurações salvas com sucesso!");
